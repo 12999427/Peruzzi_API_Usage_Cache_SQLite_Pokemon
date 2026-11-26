@@ -1,0 +1,35 @@
+=== CONSEGNA ===
+Realizzare un’applicazione che consenta all’utente di ricercare informazioni su un Pokémon inserendone il nome o l'id. Il programma dovrà innanzitutto verificare se il Pokémon richiesto è già presente all’interno di un database locale SQLite; in caso affermativo, restituirà direttamente i dati salvati, evitando chiamate superflue alla rete. Qualora il dato non fosse ancora memorizzato, l’applicazione dovrà interrogare il servizio esterno PokéAPI tramite la classe HttpClient, estrarre dalla risposta JSON le informazioni essenziali (id, nome, tipo 1 ed eventuale tipo 2), salvarle nella tabella del database per le ricerche future e infine mostrarle a schermo all’utente.
+
+
+=== SCELTE PROGETTUALI ===
+
+1. Modellazione della classe PokemonApiResponse: List<Type> vs Type 1 e Type 2 (nullable)
+-----------------------------------------------------------------------------
+Scelta adottata: Utilizzare `type1` e `type2` (nullable), preferibilmente come `String` (o riferimenti a Tipo), invece di una `List<Type>`.
+
+Motivazioni:
+- Requisiti di consegna: Il testo richiede esplicitamente di estrarre "id, nome, tipo 1 ed eventuale tipo 2". Nel mondo Pokémon ogni creatura ha sempre un tipo primario obbligatorio e al massimo un tipo secondario opzionale.
+- Semplicità e coerenza con il Database SQLite:
+  La tabella nel database relazionale sarà modellata come:
+    CREATE TABLE pokemonApiResponse (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        type1 TEXT NOT NULL,
+        type2 TEXT
+    );
+  Avere `type1` e `type2` nel modello rende le operazioni di lettura (SELECT) e scrittura (INSERT) dirette e pulite, senza dover creare o spacchettare inutilmente collezioni o wrapper complessi (`new Type(new TypeInfo(...))`).
+
+2. Gestione della risposta PokéAPI e Deserializzazione JSON
+----------------------------------------------------------
+Nel JSON di PokéAPI i tipi vengono forniti come array (`types: [...]`). Per gestire questa differenza rispetto alla struttura del modello si possono adottare due strategie:
+
+- Approccio A (Separazione DTO / Entità di Dominio - Best Practice):
+  Mantenere un record interno/ausiliario (es. `PokemonApiResponse`) con `List<Type>` per sfruttare la deserializzazione automatica di Gson (`gson.fromJson`). L'API mapperà poi questo DTO nel modello finale `PokemonApiResponse(id, name, type1, type2)`.
+  
+- Approccio B (Parsing mirato con JsonObject):
+  Estrarre direttamente i campi necessari dalla risposta JSON con `JsonParser.parseString(body).getAsJsonObject()`, prelevando `id`, `name`, il primo elemento dell'array `types` come `type1` e l'eventuale secondo elemento come `type2`, senza creare classi wrapper intermedie.
+
+
+
+2. In JDBC gli indici partono da 1, NON da 0!
