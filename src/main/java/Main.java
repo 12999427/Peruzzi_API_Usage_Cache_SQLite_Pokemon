@@ -9,6 +9,7 @@ void main() {
     try {
         ra = RequestAgent.getInstance();
     } catch (SQLException e) {
+        System.out.println("Impossibile connettersi");
         exit(1);
     }
     while (true) {

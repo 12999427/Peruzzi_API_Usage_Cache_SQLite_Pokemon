@@ -22,6 +22,7 @@ public class RequestAgent {
 
     public Pokemon RequestPokemonByNameOrId(String txt)
     {
+        txt = txt.trim().toLowerCase();
         Integer id = null;
         try {
             id = Integer.parseInt(txt);

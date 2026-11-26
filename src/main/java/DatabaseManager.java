@@ -55,7 +55,7 @@ public class DatabaseManager {
 
     public boolean AddPokemon(Pokemon p)
     {
-        String sql = "INSERT INTO pokemon (id, nome, tipo1, tipo2) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT OR IGNORE INTO pokemon (id, nome, tipo1, tipo2) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, p.id());
             ps.setString(2, p.name());
@@ -65,7 +65,7 @@ public class DatabaseManager {
             else
                 ps.setString(4, p.type2());
 
-            return ps.execute();
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
